@@ -18,6 +18,32 @@ db.init_app(app)
 
 api = Api(app)
 
+class Login(Resource):
+    def post(self):
+        u = request.get_json()['username']
+        user = User.query.filter(User.username == u).first()
+        session['user_id'] = user.id
+        return make_response(user.to_dict(), 200)
+
+api.add_resource(Login, '/login')
+
+class Logout(Resource):
+    def delete(self):
+        session['user_id'] = None
+        return make_response("",204)
+
+api.add_resource(Logout, '/logout')
+
+class CheckSession(Resource):
+    def get(self):
+        uid = session['user_id']
+        if uid:
+            return make_response(User.query.filter(User.id == uid).first().to_dict() ,200)
+        else:
+            return make_response({}, 401)
+        # if has uid, return user and 200, if not, return 401 blank
+api.add_resource(CheckSession, '/check_session')
+
 class ClearSession(Resource):
 
     def delete(self):
